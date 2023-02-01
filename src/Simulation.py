@@ -64,7 +64,8 @@ class Simulation(object):
             the attempt to add the component to the buffer
         """
         inspect_time, component = self.inspectors[inspector_number].generate_inspect_time()
-        self.simulation_logger.info(str(self._clock) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
+        #self.simulation_logger.info(str(self._clock) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
+        print (str(self._clock) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
 
         #Schedule event for inspection completion
         completion_time = self._clock + inspect_time
@@ -84,7 +85,8 @@ class Simulation(object):
             return
 
         # Schedule event for adding to buffer
-        self.simulation_logger.info(str(self._clock) + " - " + "The inspector has placed " + component + " in " + work_station + "'s buffer")
+        #self.simulation_logger.info
+        print (str(self._clock) + " - " + "The inspector has placed " + component + " in " + work_station + "'s buffer")
         self.future_event_list.append((self._clock, "Add_to_Buffer", work_station))
 
 
@@ -101,7 +103,8 @@ class Simulation(object):
             return
         
         workstation_assembly_time = self.workstations[int(product[1])].get_delay_time()
-        self.simulation_logger.info(str(self._clock) + " - Workstation " + product + " has started building " + product)
+        # self.simulation_logger.info
+        print(str(self._clock) + " - Workstation " + product + " has started building " + product)
         
         # Schedule event for completing assembly
         build_completion_time = self._clock + workstation_assembly_time
@@ -115,7 +118,8 @@ class Simulation(object):
         """
         self.product_counts[0] += 1  # Total product counter
         self.product_counts[int(product[1])] += 1  # Product specific counter
-        self.simulation_logger.info(str(self._clock) + " - " + product + " has been completed")
+        #self.simulation_logger.info
+        print (str(self._clock) + " - " + product + " has been completed")
 
         # Try to create another product
         self.future_event_list.append((self._clock, "Unbuffer_Start_Assembly", product))
