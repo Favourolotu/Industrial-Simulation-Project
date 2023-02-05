@@ -33,12 +33,11 @@ class Simulation(object):
 
     def get_next_event(self):
         """
-            Removes and returns the next nearest chronological event from the future event list 
+            Removes and returns the next nearest event from the future event list 
         """
         if len(self.future_event_list) == 0:
             raise ValueError("Error trying to get next chronological event before any have been scheduled")
         
-        # Identify the index of the earliest chronological event from the future event list
         current_min = self.future_event_list[0][0]
         current_min_index = 0
 
@@ -60,7 +59,6 @@ class Simulation(object):
         inspect_time, component = self.inspectors[inspector_number].generate_inspect_time()
         print (str(self.timer) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
 
-        #Schedule event for inspection completion
         completion_time = self.timer + inspect_time
         self.future_event_list.append((completion_time, "Inspection_Complete", component))
 
@@ -91,8 +89,6 @@ class Simulation(object):
         success = self.buffer_manager.assemble_product(product)
 
         if not success:
-            # Could not build the product. 1 or more missing items on workstation buffer
-            # Will eventually be successful once buffers get occupied
             return
         
         workstation_assembly_time = self.workstations[product].get_delay_time()
@@ -108,8 +104,8 @@ class Simulation(object):
         """
             Processes the completeing the a specified product's assembly
         """
-        self.product_counts['Total'] += 1  # Total product counter
-        self.product_counts[product] += 1  # Product specific counter
+        self.product_counts['Total'] += 1  
+        self.product_counts[product] += 1  
         print (str(self.timer) + " - " + product + " has been completed")
 
         # Try to create another product
@@ -124,7 +120,6 @@ if __name__ == "__main__":
     np.random.seed((int(seed)))
 
 
-    # Create simulation object
     sim = Simulation()
 
     # Schedule first inspection completion for both inspectors I1 & I2
@@ -136,10 +131,10 @@ if __name__ == "__main__":
         # Event Tuple Structure ( time, event_type, Product||Component )
         evt = sim.get_next_event()
 
-        # update clock
+        # update timer
         sim.timer = evt[0]
 
-        #Update event type discernation
+        # Handle events
         if evt[1] == "Inspection_Complete":
             sim.add_to_buffer(evt[2])
         elif evt[1] == "Add_to_Buffer" or evt[1] == "Unbuffer_Start_Assembly":
