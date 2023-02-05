@@ -8,22 +8,24 @@ class Workstation(object):
         This Class is used to simulate the work station behaviour
     """
 
-    def __init__(self, product):
+    def __init__(self, product_type):
         """
             Ininital delclairation for the workstation class
         """
-        self.mean = self.generate_mean_from_data(product)
-        self.product = product
+        #stubing mean implementation due to file accessing errors
+        self.mean = 1.3
+        #self.generate_mean_from_data(product_type)
+        self.product_type = product_type
 
-    def generate_mean_from_data(self, product):
+    def generate_mean_from_data(self, product_type):
         """
             returns the mean for the specified product time from the data set
         """
-        if product == "P1":
+        if product_type == "P1":
             file_path = "data_files/ws1.dat"
-        elif product == "P2":
+        elif product_type == "P2":
             file_path = "data_files/ws2.dat"
-        elif product == "P3":
+        elif product_type == "P3":
             file_path = "data_files/ws3.dat"
         else:
             raise ValueError ("Illegel product provided")

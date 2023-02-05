@@ -1,106 +1,105 @@
 
 BUFFER_CAPACITY = 2
 
-class Component_Buffer(object):
+class Buffer(object):
+    """
+    This class implements the buffer behaviour
+    """
     def __init__(self):
-        self._component_count = 0
+        self.no_of_components = 0
 
-    def attempt_to_add_to_buffer(self):
+    def add_to_buffer(self):
         """
-            Attempts to add to the current buffer
-            returns True if successful, False if buffer is full
+            Adds component to current buffer, returns True if successful, False if buffer is full
         """
-        if (self._component_count >= BUFFER_CAPACITY):
-            # Buffer is full. Cannot add to it
+        if (self.no_of_components >= BUFFER_CAPACITY):
             return False
         else:
-            # Buffer has space. Add to it
-            self._component_count += 1
+            self.no_of_components += 1
             return True
 
     def remove_from_buffer(self):
         """
-            Removes component from buffer. 
-            Throws error if buffer is empty
+            Removes component from buffer, throws error if buffer is empty
         """
-        if (self._component_count <= 0):
-            raise ValueError("Attempted to remove component from empty buffer")
-        self._component_count -= 1
+        if (self.no_of_components <= 0):
+            raise ValueError("Cannot remove component from an empty buffer")
+        self.no_of_components -= 1
 
 
-class Component_Buffer_Manager(object):
+class Buffer_Manager(object):
+    """
+    This class managers the buffer operations
+    """
     def __init__(self):
-        # Create and populate buffer dictionary
-        self._buffer_dict = dict()
-        self._buffer_dict[("C1", "P1")] = Component_Buffer()
-        self._buffer_dict[("C1", "P2")] = Component_Buffer()
-        self._buffer_dict[("C2", "P2")] = Component_Buffer()
-        self._buffer_dict[("C1", "P3")] = Component_Buffer()
-        self._buffer_dict[("C3", "P3")] = Component_Buffer()
+        
+        self.buffer_dictionary = {}
+        self.buffer_dictionary[("C1", "P1")] = Buffer()
+        self.buffer_dictionary[("C1", "P2")] = Buffer()
+        self.buffer_dictionary[("C1", "P3")] = Buffer()
+        self.buffer_dictionary[("C2", "P2")] = Buffer()
+        self.buffer_dictionary[("C3", "P3")] = Buffer()
 
     def attempt_to_add_to_buffer(self, component):
         """
-            Attempts to add find a buffer to send the given component to
+            Function trys to find a buffer to place the component in
             returns (True, Product) if successfully added
             returns (False, None) if all buffers are full. 
         """
 
         if component == "C1":
-            # Check capacities of all C1 buffers [P1,P2,P3] buffer capacity list
+            
             buffer_capacities = []
-            buffer_capacities.append(self._buffer_dict[("C1", "P1")]._component_count)
-            buffer_capacities.append(self._buffer_dict[("C1", "P2")]._component_count)
-            buffer_capacities.append(self._buffer_dict[("C1", "P3")]._component_count)
+            buffer_capacities.append(self.buffer_dictionary[("C1", "P1")].no_of_components)
+            buffer_capacities.append(self.buffer_dictionary[("C1", "P2")].no_of_components)
+            buffer_capacities.append(self.buffer_dictionary[("C1", "P3")].no_of_components)
 
-            # Check if all buffers are full. Can't add if they are
+            
             if sum(buffer_capacities) == BUFFER_CAPACITY * 3:
                 return False, None
 
-            # Get the index of the lowest capacity. First index if tied
-            # P1 before P2 before P3 prioritization
             buffer_choice = buffer_capacities.index(min(buffer_capacities))
 
             if buffer_choice == 0:
-                return self._buffer_dict[("C1", "P1")].attempt_to_add_to_buffer(), "P1"
-            elif buffer_choice == 1:
-                return self._buffer_dict[("C1", "P1")].attempt_to_add_to_buffer(), "P2"
-            elif buffer_choice == 2:
-                return self._buffer_dict[("C1", "P1")].attempt_to_add_to_buffer(), "P3"
+                return self.buffer_dictionary[("C1", "P1")].add_to_buffer(), "P1"
 
-            # Should never get here. Error if we do
-            raise ValueError("Internal buffer manager error attempting to add component C1 to a buffer")
+            elif buffer_choice == 1:
+                return self.buffer_dictionary[("C1", "P2")].add_to_buffer(), "P2"
+
+            elif buffer_choice == 2:
+                return self.buffer_dictionary[("C1", "P3")].add_to_buffer(), "P3"
+
+            raise ValueError("Check buffer manager, error while attempting to add component C1 to a buffer")
 
         elif component == "C2":
-            # Only one possible buffer this component can be sent to
-            add_success = self._buffer_dict[("C2", "P2")].attempt_to_add_to_buffer()
+            add_success = self.buffer_dictionary[("C2", "P2")].add_to_buffer()
             return add_success,  "P2" if add_success else None
 
         elif component == "C3":
-            # Only one possible buffer this component can be sent to
-            add_success = self._buffer_dict[("C3", "P3")].attempt_to_add_to_buffer()
+            add_success = self.buffer_dictionary[("C3", "P3")].add_to_buffer()
             return add_success,  "P3" if add_success else None
-        # END Component_Buffer_Manager.attempt_to_add_to_buffer
 
-    def attempt_to_assemble_product(self, product):
+    def assemble_product(self, product):
         """
-            Takes components off of the corresponding workstation 
-            buffers to assemble product
+            Trys to remove components from the workstation and assembles product
             Returns True if the needed buffers were non empty and this was done successfully
             Returns False if there are missing components on the buffers
         """
         if product == "P1":
-            if (self._buffer_dict[("C1", "P1")]._component_count == 0):
+            if (self.buffer_dictionary[("C1", "P1")].no_of_components == 0):
                 return False
-            self._buffer_dict[("C1", "P1")].remove_from_buffer()
+            self.buffer_dictionary[("C1", "P1")].remove_from_buffer()
+
         elif product == "P2":
-            if (self._buffer_dict[("C1", "P2")]._component_count == 0 or self._buffer_dict[("C2", "P2")]._component_count == 0):
+            if (self.buffer_dictionary[("C1", "P2")].no_of_components == 0 or self.buffer_dictionary[("C2", "P2")].no_of_components_ == 0):
                 return False
-            self._buffer_dict[("C1", "P2")].remove_from_buffer()
-            self._buffer_dict[("C2", "P2")].remove_from_buffer()
+            self.buffer_dictionary[("C1", "P2")].remove_from_buffer()
+            self.buffer_dictionary[("C2", "P2")].remove_from_buffer()
+
         elif product == "P3":
-            if (self._buffer_dict[("C1", "P3")]._component_count == 0 or self._buffer_dict[("C3", "P3")]._component_count == 0):
+            if (self.buffer_dictionary[("C1", "P3")].no_of_components == 0 or self.buffer_dictionary[("C3", "P3")].no_of_components == 0):
                 return False
-            self._buffer_dict[("C1", "P3")].remove_from_buffer()
-            self._buffer_dict[("C3", "P3")].remove_from_buffer()
+            self.buffer_dictionary[("C1", "P3")].remove_from_buffer()
+            self.buffer_dictionary[("C3", "P3")].remove_from_buffer()
 
         return True

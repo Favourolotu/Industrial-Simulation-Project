@@ -1,40 +1,34 @@
 import numpy as np
 import queue
 from Inspector import Inspector1, Inspector2
-from Buffer import Component_Buffer_Manager
+from Buffer import Buffer_Manager
 from Workstation import Workstation
-import logging
 from datetime import datetime
 
-# Remove/Add "#" from "# or True" to feature flags for easier enable/disable
-USER_CHOOSES_SEED = False  # or True
-CREATE_LOG_FILES = False  # or True
 
-TOTAL_PRODUCT_CREATION_LIMIT = 100
+MAX_PRODUCTION_NUMBER = 100
 
 
 
 class Simulation(object):
-    def __init__(self, logger):
-        self._clock = 0
-        self.simulation_logger = logger
+    """
+    This class ecompasses the behavoiur of the simulation
+    """
+    def __init__(self):
+        self.timer = 0
 
-        #Using a list instead of a queue because the order that events occur may not be chronological
+        #Keep track of future events
         self.future_event_list = []
 
-        # [Total, P1, P2, P3] - index matches product
-        self.product_counts = [0, 0, 0, 0]
+        self.product_counts = {'Total': 0,'P1': 0,'P2': 0,'P3': 0}
 
-        # [None, I1, I2] so inspector number matches index
-        self.inspectors = [None, Inspector1(), Inspector2()]
+        self.inspectors = {1: Inspector1(), 2: Inspector2()}
 
-        # [None, W1, W2, W3] so workstation number match index
-        self.workstations = [None, 
-                              Workstation("P1"),
-                              Workstation("P2"),
-                              Workstation("P3")] 
+        self.workstations = { "P1": Workstation("P1"),
+                              "P2": Workstation("P2"),
+                              "P3": Workstation("P3")} 
 
-        self._buffer_manager = Component_Buffer_Manager()
+        self.buffer_manager = Buffer_Manager()
 
 
     def get_next_event(self):
@@ -64,11 +58,10 @@ class Simulation(object):
             the attempt to add the component to the buffer
         """
         inspect_time, component = self.inspectors[inspector_number].generate_inspect_time()
-        #self.simulation_logger.info(str(self._clock) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
-        print (str(self._clock) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
+        print (str(self.timer) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
 
         #Schedule event for inspection completion
-        completion_time = self._clock + inspect_time
+        completion_time = self.timer + inspect_time
         self.future_event_list.append((completion_time, "Inspection_Complete", component))
 
 
@@ -78,16 +71,16 @@ class Simulation(object):
             Processes attempting to add an inspected component to a buffer
         """
         # If successful, the buffers will be updated accordingly by calling this
-        success, work_station = self._buffer_manager.attempt_to_add_to_buffer(component)
+        success, work_station = self.buffer_manager.attempt_to_add_to_buffer(component)
 
         # Inspector is blocked and can't add to buffer right now
         if not success:
             return
 
         # Schedule event for adding to buffer
-        #self.simulation_logger.info
-        print (str(self._clock) + " - " + "The inspector has placed " + component + " in " + work_station + "'s buffer")
-        self.future_event_list.append((self._clock, "Add_to_Buffer", work_station))
+        print (str(self.timer) + " - " + "The inspector has placed " + component + " in " + work_station + "'s buffer")
+        self.future_event_list.append((self.timer, "Start_Next_Inspection", 1 if component== "C1" else 2))
+        self.future_event_list.append((self.timer, "Add_to_Buffer", work_station))
 
 
 
@@ -95,19 +88,18 @@ class Simulation(object):
         """
             Processes attempting to start assembling a product
         """
-        success = self._buffer_manager.attempt_to_assemble_product(product)
+        success = self.buffer_manager.assemble_product(product)
 
         if not success:
             # Could not build the product. 1 or more missing items on workstation buffer
             # Will eventually be successful once buffers get occupied
             return
         
-        workstation_assembly_time = self.workstations[int(product[1])].get_delay_time()
-        # self.simulation_logger.info
-        print(str(self._clock) + " - Workstation " + product + " has started building " + product)
+        workstation_assembly_time = self.workstations[product].get_delay_time()
+        print(str(self.timer) + " - Workstation " + product + " has started building " + product)
         
         # Schedule event for completing assembly
-        build_completion_time = self._clock + workstation_assembly_time
+        build_completion_time = self.timer + workstation_assembly_time
         self.future_event_list.append((build_completion_time, "Assembly_Complete", product))
 
 
@@ -116,13 +108,12 @@ class Simulation(object):
         """
             Processes the completeing the a specified product's assembly
         """
-        self.product_counts[0] += 1  # Total product counter
-        self.product_counts[int(product[1])] += 1  # Product specific counter
-        #self.simulation_logger.info
-        print (str(self._clock) + " - " + product + " has been completed")
+        self.product_counts['Total'] += 1  # Total product counter
+        self.product_counts[product] += 1  # Product specific counter
+        print (str(self.timer) + " - " + product + " has been completed")
 
         # Try to create another product
-        self.future_event_list.append((self._clock, "Unbuffer_Start_Assembly", product))
+        self.future_event_list.append((self.timer, "Unbuffer_Start_Assembly", product))
 
 
 # Main script
@@ -130,38 +121,23 @@ if __name__ == "__main__":
 
     # set seed for random number generator
     seed = 0
-    if USER_CHOOSES_SEED:
-        seed = input('Enter simulation seed:')
     np.random.seed((int(seed)))
-
-    #   Logging Setup
-    logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-    logger = logging.getLogger()
-
-#    fileHandler = logging.FileHandler("logs/{1}.log".format("logs", datetime.now().strftime("%d-%m-%Y")))
-#    fileHandler.setFormatter(logFormatter)
-#    fileHandler.setLevel("WARNING")
-#    logger.addHandler(fileHandler)
-
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setFormatter(logFormatter)
-    logger.addHandler(consoleHandler)
 
 
     # Create simulation object
-    sim = Simulation(logger)
+    sim = Simulation()
 
     # Schedule first inspection completion for both inspectors I1 & I2
     sim.schedule_add_to_buffer(1)
     sim.schedule_add_to_buffer(2)
 
-    while sim.product_counts[0] <= TOTAL_PRODUCT_CREATION_LIMIT:
+    while sim.product_counts['Total'] <= MAX_PRODUCTION_NUMBER:
         # Get next event
         # Event Tuple Structure ( time, event_type, Product||Component )
         evt = sim.get_next_event()
 
         # update clock
-        sim._clock = evt[0]
+        sim.timer = evt[0]
 
         #Update event type discernation
         if evt[1] == "Inspection_Complete":
@@ -170,3 +146,5 @@ if __name__ == "__main__":
             sim.unbuffer_workstation(evt[2])
         elif evt[1] == "Assembly_Complete":
             sim.process_product_made(evt[2])
+        elif evt[1] == "Start_Next_Inspection":
+            sim.schedule_add_to_buffer(evt[2])
