@@ -1,6 +1,6 @@
 # Industrial-Simulation-Project
 The idea behind the simulation is to use inputs to generate probable output. 
-In this project, the inputs used are the service times of both the inspectors and the workstation.
+In this project, the inputs used are the service times of both the inspectors and the workstation. Refer to project description for broader context.
 The input data are units of time.
 
 # Run Instructions
