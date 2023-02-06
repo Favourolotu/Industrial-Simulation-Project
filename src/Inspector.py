@@ -1,6 +1,5 @@
 import numpy
 import random
-import os
 
     
 
@@ -16,9 +15,8 @@ class Inspector1(object):
         """
             intilazation of the Inspector1 class 
         """
-        #stubing mean implementation due to file accessing errors
-        self.mean= 2.5
-        #self.generate_mean_from_data()
+
+        self.mean= self.generate_mean_from_data()
 
     
     def generate_mean_from_data(self):
@@ -26,9 +24,7 @@ class Inspector1(object):
             Returns the Mean for component 1 from the data set
         """
        
-        current_dir = os.getcwd()
-        path = "src\dat_files\servinsp1.dat"
-        file_path = os.path.join(current_dir, path)
+        file_path = "data_files\servinsp1.dat"
 
         content = []
         
@@ -68,25 +64,21 @@ class Inspector2(object):
             intilazation of the Inspector2 class 
         """
         #stubing mean implementation due to file accessing errors
-        self.C2_mean = 1.5
-        #self.generate_mean_from_data("C2")
-        self.C3_mean = 3.5
-        #self.generate_mean_from_data("C3")
+        self.C2_mean = self.generate_mean_from_data("C2")
+        self.C3_mean = self.generate_mean_from_data("C3")
     
 
     def generate_mean_from_data(self, component):
         """
             returns the Mean for the given component from the distribution
         """
-        script_dir = os.getcwd()
         
 
         if component == "C2":
-            file_path = "src\data_files\servinsp22.dat"
+            file_path = "data_files\servinsp22.dat"
         else:
-            file_path = "src\data_files\servinsp23.dat"
+            file_path = "data_files\servinsp23.dat"
         
-        file_path = os.path.join(script_dir, file_path)
         
         content = []
         
@@ -120,7 +112,7 @@ class Inspector2(object):
 
 
         if component == "C2":
-
+            # convert randomly generated delay in minutes to seconds
             time = numpy.random.exponential(self.C2_mean, 1)[0] * 60
         else: 
             time = numpy.random.exponential(self.C3_mean, 1)[0] * 60

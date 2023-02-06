@@ -1,4 +1,3 @@
-from multiprocessing.sharedctypes import Value
 import numpy
 
 NUMBER_OF_SAMPLES = 300
@@ -12,9 +11,8 @@ class Workstation(object):
         """
             Ininital delclairation for the workstation class
         """
-        #stubing mean implementation due to file accessing errors
-        self.mean = 1.3
-        #self.generate_mean_from_data(product_type)
+        self.mean = self.generate_mean_from_data(product_type)
+        
         self.product_type = product_type
 
     def generate_mean_from_data(self, product_type):
@@ -52,6 +50,7 @@ class Workstation(object):
             Creates a inspection time delay from the distribution 
             returns the delay time
         """
+        # convert randomly generated delay in minutes to seconds
         time = numpy.random.exponential(self.mean, 1)[0] * 60
         return time
     

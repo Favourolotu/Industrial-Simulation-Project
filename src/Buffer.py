@@ -23,7 +23,8 @@ class Buffer(object):
             Removes component from buffer, throws error if buffer is empty
         """
         if (self.no_of_components <= 0):
-            raise ValueError("Cannot remove component from an empty buffer")
+            return
+
         self.no_of_components -= 1
 
 
@@ -54,7 +55,7 @@ class Buffer_Manager(object):
             buffer_capacities.append(self.buffer_dictionary[("C1", "P2")].no_of_components)
             buffer_capacities.append(self.buffer_dictionary[("C1", "P3")].no_of_components)
 
-            
+            # retrun if all buffers are full
             if sum(buffer_capacities) == BUFFER_CAPACITY * 3:
                 return False, None
 
@@ -88,17 +89,20 @@ class Buffer_Manager(object):
         if product == "P1":
             if (self.buffer_dictionary[("C1", "P1")].no_of_components == 0):
                 return False
+
             self.buffer_dictionary[("C1", "P1")].remove_from_buffer()
 
         elif product == "P2":
-            if (self.buffer_dictionary[("C1", "P2")].no_of_components == 0 or self.buffer_dictionary[("C2", "P2")].no_of_components_ == 0):
+            if (self.buffer_dictionary[("C1", "P2")].no_of_components == 0 and self.buffer_dictionary[("C2", "P2")].no_of_components == 0):
                 return False
+
             self.buffer_dictionary[("C1", "P2")].remove_from_buffer()
             self.buffer_dictionary[("C2", "P2")].remove_from_buffer()
 
         elif product == "P3":
-            if (self.buffer_dictionary[("C1", "P3")].no_of_components == 0 or self.buffer_dictionary[("C3", "P3")].no_of_components == 0):
+            if (self.buffer_dictionary[("C1", "P3")].no_of_components == 0 and self.buffer_dictionary[("C3", "P3")].no_of_components == 0):
                 return False
+
             self.buffer_dictionary[("C1", "P3")].remove_from_buffer()
             self.buffer_dictionary[("C3", "P3")].remove_from_buffer()
 
