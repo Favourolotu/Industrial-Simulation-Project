@@ -1,9 +1,7 @@
-import numpy
 import random
+from utillities import expo_inverse_cdf
 
-    
 
-    
 NUMBER_OF_SAMPLES = 300
 
 class Inspector1(object):
@@ -11,44 +9,19 @@ class Inspector1(object):
         This Class is used to simulate the Inspector1 behaviour
     """
     
-    def __init__(self):
+    def __init__(self, rand_generator):
         """
             intilazation of the Inspector1 class 
         """
 
-        self.mean= self.generate_mean_from_data()
-
-    
-    def generate_mean_from_data(self):
-        """
-            Returns the Mean for component 1 from the data set
-        """
-       
-        file_path = "data_files\servinsp1.dat"
-
-        content = []
+        self.rand_generator = rand_generator
         
-        for i in open(file_path).readlines():
-            i.strip().split()
-            
-            converted = -1
-
-            try:
-                converted = float(i)
-            except:
-                print ("Empty Space Found!")
-
-            if converted != -1:
-                content.append(float(i))
-
-        return sum(content) / NUMBER_OF_SAMPLES
-    
     def generate_inspect_time(self):
         """
             Creates a inspection time delay from the distribution returns delay time and component 
         """
-        #Generate the random time delay from the mean and change to seconds
-        time = numpy.random.exponential(self.mean, 1)[0] * 60
+        # Lambda = 1 / sample_mean
+        time = expo_inverse_cdf(self.rand_generator.get_next_r(), 0.096544573)       
         return (time, "C1")
 
 
@@ -59,43 +32,14 @@ class Inspector2(object):
         This Class is used to simulate the Inspector2 behaviour
     """
     
-    def __init__(self):
+    def __init__(self, rand_generator):
         """
-            intilazation of the Inspector2 class 
+            intilazation of the Inspector1 class 
         """
-        #stubing mean implementation due to file accessing errors
-        self.C2_mean = self.generate_mean_from_data("C2")
-        self.C3_mean = self.generate_mean_from_data("C3")
+
+        self.rand_generator = rand_generator
     
 
-    def generate_mean_from_data(self, component):
-        """
-            returns the Mean for the given component from the distribution
-        """
-        
-
-        if component == "C2":
-            file_path = "data_files\servinsp22.dat"
-        else:
-            file_path = "data_files\servinsp23.dat"
-        
-        
-        content = []
-        
-        for i in open(file_path).readlines():
-            i.strip().split()
-            
-            converted = -1
-
-            try:
-                converted = float(i)
-            except:
-                print ("Empty Space Found!")
-
-            if converted != -1:
-                content.append(float(i))
-
-        return sum(content) / NUMBER_OF_SAMPLES
 
 
     def generate_inspect_time(self):
@@ -110,11 +54,10 @@ class Inspector2(object):
         else:
             component = "C3"
 
-
+        # Lambda = 1 / sample_mean
         if component == "C2":
-            # convert randomly generated delay in minutes to seconds
-            time = numpy.random.exponential(self.C2_mean, 1)[0] * 60
+            time = expo_inverse_cdf(self.rand_generator.get_next_r(), 0.06436289)
         else: 
-            time = numpy.random.exponential(self.C3_mean, 1)[0] * 60
+            time = expo_inverse_cdf(self.rand_generator.get_next_r(), 0.048466621)
         
         return (time, component)

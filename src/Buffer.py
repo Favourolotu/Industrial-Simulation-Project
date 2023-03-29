@@ -23,7 +23,7 @@ class Buffer(object):
             Removes component from buffer, throws error if buffer is empty
         """
         if (self.no_of_components <= 0):
-            return
+            raise ValueError("Cannot remove from an empty buffer")
 
         self.no_of_components -= 1
 
@@ -59,6 +59,7 @@ class Buffer_Manager(object):
             if sum(buffer_capacities) == BUFFER_CAPACITY * 3:
                 return False, None
 
+            # Get the buffer with lowest capacity
             buffer_choice = buffer_capacities.index(min(buffer_capacities))
 
             if buffer_choice == 0:
@@ -93,17 +94,18 @@ class Buffer_Manager(object):
             self.buffer_dictionary[("C1", "P1")].remove_from_buffer()
 
         elif product == "P2":
-            if (self.buffer_dictionary[("C1", "P2")].no_of_components == 0 and self.buffer_dictionary[("C2", "P2")].no_of_components == 0):
+            if (self.buffer_dictionary[("C1", "P2")].no_of_components == 0 or self.buffer_dictionary[("C2", "P2")].no_of_components == 0):
                 return False
 
             self.buffer_dictionary[("C1", "P2")].remove_from_buffer()
             self.buffer_dictionary[("C2", "P2")].remove_from_buffer()
 
         elif product == "P3":
-            if (self.buffer_dictionary[("C1", "P3")].no_of_components == 0 and self.buffer_dictionary[("C3", "P3")].no_of_components == 0):
+            if (self.buffer_dictionary[("C1", "P3")].no_of_components == 0 or self.buffer_dictionary[("C3", "P3")].no_of_components == 0):
                 return False
 
             self.buffer_dictionary[("C1", "P3")].remove_from_buffer()
             self.buffer_dictionary[("C3", "P3")].remove_from_buffer()
 
         return True
+    
