@@ -6,7 +6,7 @@ from Multiplicative_Congruential_Model import Multiplicative_Congruential_Model 
 import random
 
 
-MAX_PRODUCTION_NUMBER = 1000
+MAX_PRODUCTION_NUMBER = 50000
 
 
 
@@ -30,7 +30,7 @@ class Simulation(object):
 
         self.buffer_manager = Buffer_Manager()
 
-        self.component_most_recent_block_time = [None, 0, 0, 0]
+        self.component_most_recent_block_time = [None, -1, -1, -1]
         self.component_total_block_time = [None, 0,0,0]
 
 
@@ -104,7 +104,8 @@ class Simulation(object):
         
 
         # Check if inspector 2 is waiting for a buffer spot 
-        if product!="P1" and self.component_most_recent_block_time[int(product[1])]!=-1:
+        if product!="P1" and self.component_most_recent_block_time[int(product[1])] != -1:
+            
             # Component 2 or 3 get's buffered, resume Inspector 2
             self.buffer_manager.attempt_to_add_to_buffer("C2" if product=="P2" else "C3")
 
@@ -112,25 +113,28 @@ class Simulation(object):
             blocked_time = self.timer - self.component_most_recent_block_time[int(product[1])]
             self.component_total_block_time[int(product[1])] += blocked_time
             # Reset the most recent block time to unblocked
-            self.component_most_recent_block_time[int(product[1])]!=-1
+            self.component_most_recent_block_time[int(product[1])] = 0
 
-            # Start inspector 2 next inspection A$AP
+            # Start inspector 2 next inspection
             self.future_event_list.append((self.timer, "Start_Next_Inspection", 2))
 
         # Check if inspector 1 is waiting for a buffer spot 
-        if self.component_most_recent_block_time[1]!=-1:
-            # All products use component 1. Add it to the buffer if inspector 1 is stuck. Resume inspector 1
+        if self.component_most_recent_block_time[1] != -1:
+            
+            # Resume inspector 1
             self.buffer_manager.attempt_to_add_to_buffer("C1")
             
             # Track the blocked time
             blocked_time = self.timer - self.component_most_recent_block_time[1]
             self.component_total_block_time[1] += blocked_time
             # Reset the most recent block time to unblocked
-            self.component_most_recent_block_time[1]!=-1
+            self.component_most_recent_block_time[1] = -1
 
-            # Start the next inspection A$AP
+            # Start the next inspection
             self.future_event_list.append((self.timer, "Start_Next_Inspection", 1 ))
 
+        #waiting_time = self.timer - self.workstation_most_recent_wait_for_component_time[product.value]
+        #self.workstation_total_wait_for_component_time[int(product[1])] += waiting_time
 
         workstation_assembly_time = self.workstations[product].get_delay_time()
         print(str(self.timer) + " - Workstation " + product + " has started building " + product)
@@ -153,45 +157,50 @@ class Simulation(object):
         self.workstations[product].complete_build()
         # Try to create another product
         self.future_event_list.append((self.timer, "Unbuffer_Start_Assembly", product))
+        # self.workstation_most_recent_wait_for_component_time[int(product[1])] = self.timer
 
 
 
 # Main script
 if __name__ == "__main__":
 
-    seed = random.randint(20, 23232323)
+    for i in range(632):
 
-    start = time.time()
-    print("Simulation in progress, started at "+ str(start))
-    print("Operating policy : Standard, Inspector 2 randomly inspects")
-    print("Number of products to make before stopping : " + str(MAX_PRODUCTION_NUMBER))
-    print()
-    sim = Simulation(seed)
+        seed = random.randint(20, 23232323)
 
-    # Schedule first inspection completion for both inspectors 1 and 2
-    sim.schedule_add_to_buffer(1)
-    sim.schedule_add_to_buffer(2)
+        start = time.time()
+        print("Simulation in progress, started at "+ str(start))
+        print("Number of products to make before stopping : " + str(MAX_PRODUCTION_NUMBER))
+        print()
+        
+        sim = Simulation(seed)
+
+        # Schedule first inspection completion for both inspectors 1 and 2
+        sim.schedule_add_to_buffer(1)
+        sim.schedule_add_to_buffer(2)
 
     
-    while sim.product_counts['Total'] < MAX_PRODUCTION_NUMBER:
+        while sim.product_counts['Total'] < MAX_PRODUCTION_NUMBER:
         
-        # Event format ( time, event_type, Product||Component )
-        event = sim.get_next_event()
+            # Event format ( time, event_type, Product||Component )
+            event = sim.get_next_event()
 
-        # update simulation timer
-        sim.timer = event[0]
+            # update simulation timer
+            sim.timer = event[0]
 
-        # Handle events
-        if event[1] == "Inspection_Complete":
-            sim.add_to_buffer(event[2])
-        elif event[1] == "Add_to_Buffer" or event[1] == "Unbuffer_Start_Assembly":
-            sim.unbuffer_workstation(event[2])
-        elif event[1] == "Assembly_Complete":
-            sim.product_assembled(event[2])
-        elif event[1] == "Start_Next_Inspection":
-            sim.schedule_add_to_buffer(event[2])
+            # Handle events
+            if event[1] == "Inspection_Complete":
+                sim.add_to_buffer(event[2])
+            elif event[1] == "Add_to_Buffer" or event[1] == "Unbuffer_Start_Assembly":
+                sim.unbuffer_workstation(event[2])
+            elif event[1] == "Assembly_Complete":
+                sim.product_assembled(event[2])
+            elif event[1] == "Start_Next_Inspection":
+                sim.schedule_add_to_buffer(event[2])
 
-    end = time.time()
-    print ("Simulation took: " + str(end-start) + " seconds")
-    print ("products produced => " + str(sim.product_counts))
-    print("Blocked times: C1 => {0} C2 => {1} C3 => {2}".format(sim.component_total_block_time[1], sim.component_total_block_time[2], sim.component_total_block_time[3]))
+        end = time.time()
+        print ("Simulation took: " + str(end-start) + " seconds")
+        print ("products produced => " + str(sim.product_counts))
+        print("Blocked times: C1 => {0} C2 => {1} C3 => {2}".format(sim.component_total_block_time[1], sim.component_total_block_time[2], sim.component_total_block_time[3]))
+        # print(str(sim.workstation_total_wait_for_component_time[1]))
+

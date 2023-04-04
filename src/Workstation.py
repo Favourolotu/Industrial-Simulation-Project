@@ -21,6 +21,9 @@ class Workstation(object):
             Creates a inspection time delay from the distribution 
             returns the delay time
         """
+
+        self.currently_building = True
+
         # Lambda = 1 / sample_mean
         if self.product_type == "P1":
             return expo_inverse_cdf(self.rand_generator.get_next_r(), 0.217182777)
