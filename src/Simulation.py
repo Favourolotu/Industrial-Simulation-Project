@@ -106,35 +106,31 @@ class Simulation(object):
         # Check if inspector 2 is waiting for a buffer spot 
         if product!="P1" and self.component_most_recent_block_time[int(product[1])] != -1:
             
-            # Component 2 or 3 get's buffered, resume Inspector 2
+            # let inspector 2 try buffering again
             self.buffer_manager.attempt_to_add_to_buffer("C2" if product=="P2" else "C3")
 
-            # Track the blocked time
+            # Tracking the blocked times
             blocked_time = self.timer - self.component_most_recent_block_time[int(product[1])]
             self.component_total_block_time[int(product[1])] += blocked_time
-            # Reset the most recent block time to unblocked
             self.component_most_recent_block_time[int(product[1])] = 0
 
             # Start inspector 2 next inspection
             self.future_event_list.append((self.timer, "Start_Next_Inspection", 2))
 
-        # Check if inspector 1 is waiting for a buffer spot 
+        # Check if inspector 1 is waiting for to add to buffer 
         if self.component_most_recent_block_time[1] != -1:
             
-            # Resume inspector 1
+            # let inspector 1 add to buffer
             self.buffer_manager.attempt_to_add_to_buffer("C1")
             
-            # Track the blocked time
+            # Tracking the blocked times for components
             blocked_time = self.timer - self.component_most_recent_block_time[1]
             self.component_total_block_time[1] += blocked_time
-            # Reset the most recent block time to unblocked
             self.component_most_recent_block_time[1] = -1
 
             # Start the next inspection
             self.future_event_list.append((self.timer, "Start_Next_Inspection", 1 ))
 
-        #waiting_time = self.timer - self.workstation_most_recent_wait_for_component_time[product.value]
-        #self.workstation_total_wait_for_component_time[int(product[1])] += waiting_time
 
         workstation_assembly_time = self.workstations[product].get_delay_time()
         print(str(self.timer) + " - Workstation " + product + " has started building " + product)
@@ -157,7 +153,6 @@ class Simulation(object):
         self.workstations[product].complete_build()
         # Try to create another product
         self.future_event_list.append((self.timer, "Unbuffer_Start_Assembly", product))
-        # self.workstation_most_recent_wait_for_component_time[int(product[1])] = self.timer
 
 
 
@@ -202,5 +197,4 @@ if __name__ == "__main__":
         print ("Simulation took: " + str(end-start) + " seconds")
         print ("products produced => " + str(sim.product_counts))
         print("Blocked times: C1 => {0} C2 => {1} C3 => {2}".format(sim.component_total_block_time[1], sim.component_total_block_time[2], sim.component_total_block_time[3]))
-        # print(str(sim.workstation_total_wait_for_component_time[1]))
 
