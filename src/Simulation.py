@@ -4,9 +4,11 @@ from Workstation import Workstation
 import time
 from Multiplicative_Congruential_Model import Multiplicative_Congruential_Model as mcm
 import random
+import statistics
 
 
 MAX_PRODUCTION_NUMBER = 50000
+ALTERNATE_POLICY_IN_USE = True
 
 
 
@@ -32,6 +34,12 @@ class Simulation(object):
 
         self.component_most_recent_block_time = [None, -1, -1, -1]
         self.component_total_block_time = [None, 0,0,0]
+        
+        self.block_counter = {"C1": 0,
+                              "C2":0,
+                              "C3":0}
+
+        self.last_inspected = None
 
 
     def get_next_event(self):
@@ -58,9 +66,16 @@ class Simulation(object):
             Start the inspection process for inspector id 
         """
         inspect_time, component = self.inspectors[inspector_number].generate_inspect_time()
+        self.last_inspected = component
+
+
+        if ALTERNATE_POLICY_IN_USE and inspector_number == 2:
+            inspect_time, component = self.inspectors[inspector_number].get_alternate_policy_inspect_time(self.last_inspected)
+        
+            
         print (str(self.timer) + " - Inspector " + str(inspector_number) + " has started inspection component: " + component + "\n")
 
-        
+        self.last_inspected = component
         completion_time = self.timer + inspect_time
         self.future_event_list.append((completion_time, "Inspection_Complete", component))
 
@@ -68,15 +83,14 @@ class Simulation(object):
 
     def add_to_buffer(self, component):
         """
-            Processes attempting to add an inspected component to a buffer
+            add an inspected component to a buffer
         """
         success, work_station = self.buffer_manager.attempt_to_add_to_buffer(component)
 
         # Inspector is blocked and can't add to buffer
         if not success:
-            # Inspector is blocked and can't add to buffer right now
-            # Set the current time as the most recent block time
             self.component_most_recent_block_time[int(component[1])] = self.timer
+            self.block_counter[component] += 1
             return
 
         # Schedule event for adding to buffer
@@ -158,15 +172,18 @@ class Simulation(object):
 
 # Main script
 if __name__ == "__main__":
-
+        
+    start = time.time()
+    print("Simulation in progress, started at "+ str(start))
+    print("Number of products to make before stopping : " + str(MAX_PRODUCTION_NUMBER))
+    sim_block_times_stats = {"C1":[],
+                            "C2":[],
+                            "C3":[]}
     for i in range(632):
 
         seed = random.randint(20, 23232323)
 
-        start = time.time()
-        print("Simulation in progress, started at "+ str(start))
-        print("Number of products to make before stopping : " + str(MAX_PRODUCTION_NUMBER))
-        print()
+        
         
         sim = Simulation(seed)
 
@@ -193,8 +210,17 @@ if __name__ == "__main__":
             elif event[1] == "Start_Next_Inspection":
                 sim.schedule_add_to_buffer(event[2])
 
-        end = time.time()
-        print ("Simulation took: " + str(end-start) + " seconds")
-        print ("products produced => " + str(sim.product_counts))
-        print("Blocked times: C1 => {0} C2 => {1} C3 => {2}".format(sim.component_total_block_time[1], sim.component_total_block_time[2], sim.component_total_block_time[3]))
+        sim_block_times_stats["C1"].append(sim.component_total_block_time[1] / sim.block_counter["C1"])
+        sim_block_times_stats["C2"].append(sim.component_total_block_time[2] / sim.block_counter["C2"])
+        sim_block_times_stats["C3"].append(sim.component_total_block_time[3] / sim.block_counter["C3"])
+    
+   
+    for key in sim_block_times_stats:
+        print(key + " Average waiting time:")
+        print("Mean: " + str(round(statistics.mean(sim_block_times_stats[key]), 2)))
+        print("Standard deviation: " + str(round(statistics.stdev(sim_block_times_stats[key]), 2)))
+        print("n: " + str(len(sim_block_times_stats[key])) +"\n")
+
+    end = time.time()
+    print ("Simulation took: " + str(end-start) + " seconds")
 

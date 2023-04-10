@@ -1,6 +1,5 @@
 from utillities import expo_inverse_cdf
 
-NUMBER_OF_SAMPLES = 300
 
 class Workstation(object):
     """
@@ -9,11 +8,11 @@ class Workstation(object):
 
     def __init__(self, product_type, rand_gen):
         """
-            Ininital delclairation for the workstation class
+            delclairation for the workstation class
         """
         self.product_type = product_type
         self.rand_generator = rand_gen
-        self.currently_building = False
+        self.building = False
 
     
     def get_delay_time(self):
@@ -22,7 +21,7 @@ class Workstation(object):
             returns the delay time
         """
 
-        self.currently_building = True
+        self.building = True
 
         # Lambda = 1 / sample_mean
         if self.product_type == "P1":
@@ -34,12 +33,9 @@ class Workstation(object):
         
 
     def complete_build(self):
-        self.currently_building = False
+        self.building = False
 
     def is_building(self):
-        """
-            Returns the self.currently_building field
-        """
-        return self.currently_building
+        return self.building
   
     

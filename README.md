@@ -12,3 +12,6 @@ dependencies: numpy module
 Download the "src" folder as it contains all the relevant modules and the .dat files requred.
 Once the depedencies have been installed and the required files are downloaded 
 Run "Simulation.py" to start the simulation.
+
+# Link To Documentation
+https://docs.google.com/document/d/1GsS7C7b-TwNMFriR0H0ETPZLPpCp1hnFAfP2vs0h5VU/edit

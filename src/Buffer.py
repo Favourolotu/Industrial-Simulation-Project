@@ -71,7 +71,6 @@ class Buffer_Manager(object):
             elif buffer_choice == 2:
                 return self.buffer_dictionary[("C1", "P3")].add_to_buffer(), "P3"
 
-            raise ValueError("Check buffer manager, error while attempting to add component C1 to a buffer")
 
         elif component == "C2":
             add_success = self.buffer_dictionary[("C2", "P2")].add_to_buffer()
@@ -84,8 +83,8 @@ class Buffer_Manager(object):
     def assemble_product(self, product):
         """
             Trys to remove components from the workstation and assembles product
-            Returns True if the needed buffers were non empty and this was done successfully
-            Returns False if there are missing components on the buffers
+            Returns True if successful
+            Returns False if there are missing components in the buffer
         """
         if product == "P1":
             if (self.buffer_dictionary[("C1", "P1")].no_of_components == 0):

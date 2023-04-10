@@ -43,10 +43,6 @@ class Inspector2(object):
 
 
     def generate_inspect_time(self):
-        """
-            Creates a inspection time delay from the distribution 
-            returns the delay time and the component 
-        """
 
         # Randomly select the component to generate inpect time for 
         if random.getrandbits(1) == 1:
@@ -61,3 +57,11 @@ class Inspector2(object):
             time = expo_inverse_cdf(self.rand_generator.get_next_r(), 0.048466621)
         
         return (time, component)
+    
+    def get_alternate_policy_inspect_time(self, component):
+
+        if component == "C2":
+            return (expo_inverse_cdf(self.rand_generator.get_next_r(), 0.048466621), "C3")
+        
+        elif component == "C3":
+            return (expo_inverse_cdf(self.rand_generator.get_next_r(), 0.06436289), "C2")
